@@ -1,0 +1,1656 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=no">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="工作记录">
+<title>水电安装工作记录</title>
+<style>
+/* ========== CSS变量 & 全局样式 ========== */
+:root {
+  --orange: #FF8C00;
+  --orange-light: #FFA940;
+  --orange-bg: #FFF7E6;
+  --orange-dark: #E67300;
+  --text: #333333;
+  --text-light: #666666;
+  --text-lighter: #999999;
+  --card: #FFFFFF;
+  --bg: #F5F5F5;
+  --danger: #E53935;
+  --success: #43A047;
+  --shadow: 0 2px 8px rgba(0,0,0,0.08);
+  --shadow-lg: 0 4px 16px rgba(0,0,0,0.12);
+  --radius: 12px;
+  --radius-sm: 8px;
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "PingFang SC", "Hiragino Sans GB", "Microsoft YaHei", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  -webkit-tap-highlight-color: transparent;
+  -webkit-font-smoothing: antialiased;
+  user-select: none;
+  -webkit-user-select: none;
+  overflow: hidden;
+  height: 100vh;
+  height: 100dvh;
+}
+
+#app {
+  max-width: 480px;
+  margin: 0 auto;
+  height: 100vh;
+  height: 100dvh;
+  display: flex;
+  flex-direction: column;
+  background: var(--bg);
+  position: relative;
+}
+
+#header {
+  background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+  color: #fff;
+  padding: 12px 16px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 600;
+  letter-spacing: 1px;
+  flex-shrink: 0;
+  box-shadow: 0 2px 8px rgba(230, 115, 0, 0.3);
+  z-index: 10;
+}
+
+#content {
+  flex: 1;
+  overflow-y: auto;
+  overflow-x: hidden;
+  -webkit-overflow-scrolling: touch;
+  padding: 12px 12px 16px;
+  scroll-behavior: smooth;
+}
+
+#nav {
+  display: flex;
+  background: #fff;
+  border-top: 1px solid #eee;
+  flex-shrink: 0;
+  padding-bottom: var(--safe-bottom);
+  box-shadow: 0 -2px 8px rgba(0,0,0,0.04);
+  z-index: 10;
+}
+
+#nav .nav-item {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 8px 4px;
+  cursor: pointer;
+  color: var(--text-lighter);
+  transition: color 0.2s;
+  font-size: 10px;
+  border: none;
+  background: none;
+  -webkit-tap-highlight-color: transparent;
+}
+
+#nav .nav-item .nav-icon { font-size: 22px; margin-bottom: 2px; transition: transform 0.2s; }
+#nav .nav-item.active { color: var(--orange); font-weight: 600; }
+#nav .nav-item.active .nav-icon { transform: scale(1.15); }
+
+@keyframes fadeIn {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+
+.stats-row { display: flex; gap: 10px; margin-bottom: 16px; }
+
+.stat-card {
+  flex: 1;
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 16px 12px;
+  text-align: center;
+  box-shadow: var(--shadow);
+  border-top: 3px solid var(--orange);
+}
+
+.stat-card .stat-num { font-size: 28px; font-weight: 700; color: var(--orange); line-height: 1.2; }
+.stat-card .stat-label { font-size: 12px; color: var(--text-light); margin-top: 4px; }
+
+.card {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+  cursor: pointer;
+  transition: transform 0.15s, box-shadow 0.15s;
+  position: relative;
+}
+
+.card:active { transform: scale(0.98); box-shadow: var(--shadow-lg); }
+.card .card-title { font-size: 16px; font-weight: 600; color: var(--text); margin-bottom: 6px; }
+.card .card-info { font-size: 13px; color: var(--text-light); line-height: 1.6; }
+
+.card .card-badge {
+  display: inline-block;
+  background: var(--orange-bg);
+  color: var(--orange-dark);
+  padding: 2px 8px;
+  border-radius: 10px;
+  font-size: 11px;
+  font-weight: 600;
+  margin-right: 6px;
+}
+
+.card .card-arrow {
+  position: absolute;
+  right: 14px;
+  top: 50%;
+  transform: translateY(-50%);
+  color: var(--text-lighter);
+  font-size: 18px;
+}
+
+.empty-state { text-align: center; padding: 60px 20px; color: var(--text-lighter); }
+.empty-state .empty-icon { font-size: 60px; margin-bottom: 12px; opacity: 0.5; }
+.empty-state .empty-text { font-size: 14px; }
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  border: none;
+  border-radius: 22px;
+  padding: 10px 20px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  -webkit-tap-highlight-color: transparent;
+}
+
+.btn:active { transform: scale(0.95); }
+.btn-primary { background: linear-gradient(135deg, var(--orange), var(--orange-dark)); color: #fff; box-shadow: 0 2px 8px rgba(230, 115, 0, 0.3); }
+.btn-danger { background: #fff; color: var(--danger); border: 1px solid var(--danger); }
+.btn-sm { padding: 6px 14px; font-size: 12px; border-radius: 16px; }
+.btn-block { width: 100%; }
+
+.fab {
+  position: sticky;
+  bottom: 8px;
+  float: right;
+  width: 50px;
+  height: 50px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+  color: #fff;
+  border: none;
+  font-size: 26px;
+  cursor: pointer;
+  box-shadow: 0 4px 12px rgba(230, 115, 0, 0.4);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 5;
+  transition: transform 0.2s;
+}
+
+.fab:active { transform: scale(0.9); }
+
+.modal-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 100;
+  justify-content: center;
+  align-items: flex-end;
+}
+
+.modal-overlay.show { display: flex; }
+
+.modal {
+  background: #fff;
+  border-radius: 16px 16px 0 0;
+  width: 100%;
+  max-width: 480px;
+  max-height: 85vh;
+  overflow-y: auto;
+  padding: 20px 16px;
+  animation: slideUp 0.3s ease;
+  padding-bottom: calc(20px + var(--safe-bottom));
+}
+
+@keyframes slideUp {
+  from { transform: translateY(100%); }
+  to { transform: translateY(0); }
+}
+
+.modal h3 { font-size: 17px; text-align: center; margin-bottom: 16px; color: var(--text); }
+
+.form-group { margin-bottom: 14px; }
+.form-group label { display: block; font-size: 13px; color: var(--text-light); margin-bottom: 4px; font-weight: 500; }
+
+.form-group input,
+.form-group textarea,
+.form-group select {
+  width: 100%;
+  padding: 10px 14px;
+  border: 1px solid #e0e0e0;
+  border-radius: var(--radius-sm);
+  font-size: 15px;
+  color: var(--text);
+  background: #fafafa;
+  transition: border-color 0.2s;
+  font-family: inherit;
+  -webkit-appearance: none;
+}
+
+.form-group input:focus,
+.form-group textarea:focus {
+  outline: none;
+  border-color: var(--orange);
+  background: #fff;
+  box-shadow: 0 0 0 3px rgba(255, 140, 0, 0.1);
+}
+
+.form-group textarea { min-height: 70px; resize: vertical; }
+
+.form-actions { display: flex; gap: 10px; margin-top: 20px; }
+.form-actions .btn { flex: 1; }
+
+.confirm-overlay {
+  display: none;
+  position: fixed;
+  top: 0; left: 0; right: 0; bottom: 0;
+  background: rgba(0,0,0,0.5);
+  z-index: 200;
+  justify-content: center;
+  align-items: center;
+}
+
+.confirm-overlay.show { display: flex; }
+
+.confirm-dialog {
+  background: #fff;
+  border-radius: var(--radius);
+  padding: 24px 20px;
+  width: 280px;
+  text-align: center;
+  box-shadow: var(--shadow-lg);
+}
+
+.confirm-dialog p { font-size: 15px; margin-bottom: 20px; color: var(--text); }
+.confirm-dialog .confirm-actions { display: flex; gap: 10px; }
+.confirm-dialog .confirm-actions .btn { flex: 1; }
+
+.toast {
+  position: fixed;
+  top: 20px;
+  left: 50%;
+  transform: translateX(-50%);
+  background: #333;
+  color: #fff;
+  padding: 10px 24px;
+  border-radius: 20px;
+  font-size: 14px;
+  z-index: 300;
+  opacity: 0;
+  transition: opacity 0.3s;
+  pointer-events: none;
+}
+
+.toast.show { opacity: 1; }
+
+.search-box { position: relative; margin-bottom: 14px; }
+
+.search-box input {
+  width: 100%;
+  padding: 12px 16px 12px 40px;
+  border: 2px solid #e0e0e0;
+  border-radius: 24px;
+  font-size: 15px;
+  background: #fff;
+  transition: border-color 0.2s;
+}
+
+.search-box input:focus { outline: none; border-color: var(--orange); }
+.search-box .search-icon { position: absolute; left: 14px; top: 50%; transform: translateY(-50%); font-size: 18px; color: var(--text-lighter); }
+
+.photo-grid { display: grid; grid-template-columns: repeat(3, 1fr); gap: 6px; margin-top: 12px; }
+
+.photo-item {
+  aspect-ratio: 1;
+  border-radius: var(--radius-sm);
+  overflow: hidden;
+  position: relative;
+  background: #f0f0f0;
+}
+
+.photo-item img { width: 100%; height: 100%; object-fit: cover; }
+
+.photo-item .photo-delete {
+  position: absolute;
+  top: 4px;
+  right: 4px;
+  width: 24px;
+  height: 24px;
+  border-radius: 50%;
+  background: rgba(0,0,0,0.5);
+  color: #fff;
+  border: none;
+  font-size: 12px;
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.stats-table {
+  width: 100%;
+  border-collapse: collapse;
+  background: #fff;
+  border-radius: var(--radius);
+  overflow: hidden;
+  box-shadow: var(--shadow);
+}
+
+.stats-table th, .stats-table td { padding: 11px 10px; text-align: center; font-size: 13px; }
+.stats-table th { background: var(--orange); color: #fff; font-weight: 500; font-size: 12px; }
+.stats-table td { border-bottom: 1px solid #f0f0f0; }
+.stats-table tr:last-child td { border-bottom: none; }
+
+.stats-table .total-row { background: var(--orange-bg); font-weight: 700; }
+.stats-table .total-row td { color: var(--orange-dark); font-size: 14px; }
+
+.detail-header { display: flex; align-items: center; margin-bottom: 16px; }
+.back-btn { background: none; border: none; font-size: 24px; cursor: pointer; padding: 4px 8px; margin-right: 8px; color: var(--text); -webkit-tap-highlight-color: transparent; }
+.detail-title { font-size: 17px; font-weight: 600; flex: 1; }
+.detail-actions { display: flex; gap: 6px; }
+
+.filter-row { display: flex; gap: 8px; margin-bottom: 14px; flex-wrap: wrap; }
+
+.filter-chip {
+  padding: 6px 14px;
+  border-radius: 16px;
+  border: 1px solid #ddd;
+  background: #fff;
+  font-size: 12px;
+  cursor: pointer;
+  transition: all 0.2s;
+  color: var(--text-light);
+}
+
+.filter-chip.active { background: var(--orange); color: #fff; border-color: var(--orange); }
+
+/* 日期选择器 */
+.date-selector {
+  display: flex;
+  gap: 8px;
+  overflow-x: auto;
+  padding: 4px 0 10px;
+  -webkit-overflow-scrolling: touch;
+  scroll-behavior: smooth;
+}
+
+.date-selector::-webkit-scrollbar { height: 0; }
+
+.date-chip {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 2px solid #e0e0e0;
+  background: #fff;
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.2s;
+  white-space: nowrap;
+  text-align: center;
+}
+
+.date-chip.active {
+  border-color: var(--orange);
+  background: linear-gradient(135deg, var(--orange), var(--orange-dark));
+  color: #fff;
+  box-shadow: 0 2px 8px rgba(230, 115, 0, 0.3);
+}
+
+.date-chip-add {
+  flex-shrink: 0;
+  padding: 8px 14px;
+  border-radius: 20px;
+  border: 2px dashed #ccc;
+  background: none;
+  font-size: 18px;
+  cursor: pointer;
+  color: var(--text-lighter);
+  white-space: nowrap;
+}
+
+/* 出勤汇总卡片 */
+.att-summary {
+  background: linear-gradient(135deg, var(--orange-bg), #fff);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 12px;
+  box-shadow: var(--shadow);
+  display: flex;
+  gap: 12px;
+  align-items: center;
+}
+
+.att-summary .att-stat {
+  flex: 1;
+  text-align: center;
+}
+
+.att-summary .att-stat .val {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--orange-dark);
+}
+
+.att-summary .att-stat .lbl {
+  font-size: 11px;
+  color: var(--text-light);
+  margin-top: 2px;
+}
+
+.att-summary .att-stat .val input {
+  width: 60px;
+  text-align: center;
+  font-size: 18px;
+  font-weight: 700;
+  border: none;
+  border-bottom: 2px dashed var(--orange-light);
+  background: transparent;
+  color: var(--orange-dark);
+  padding: 2px;
+}
+
+/* 折叠面板 */
+.record-section {
+  background: #fff;
+  border-radius: var(--radius);
+  margin-bottom: 10px;
+  box-shadow: var(--shadow);
+  overflow: hidden;
+}
+
+.record-section-header {
+  display: flex;
+  align-items: center;
+  padding: 13px 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+  gap: 10px;
+}
+
+.record-section-header:active { background: #fafafa; }
+.record-section-header .rs-icon { font-size: 22px; flex-shrink: 0; }
+.record-section-header .rs-label { flex: 1; font-size: 14px; font-weight: 600; }
+
+.record-section-header .rs-count {
+  background: var(--orange-bg);
+  color: var(--orange-dark);
+  font-size: 12px;
+  font-weight: 700;
+  padding: 2px 10px;
+  border-radius: 10px;
+  flex-shrink: 0;
+}
+
+.record-section-header .rs-arrow { font-size: 14px; color: var(--text-lighter); transition: transform 0.25s; flex-shrink: 0; }
+.record-section.open .record-section-header .rs-arrow { transform: rotate(180deg); }
+
+.record-section-body { display: none; padding: 0 14px 14px; border-top: 1px solid #f0f0f0; }
+.record-section.open .record-section-body { display: block; }
+
+.record-item {
+  padding: 10px 0;
+  border-bottom: 1px solid #f5f5f5;
+}
+
+.record-item:last-child { border-bottom: none; }
+
+.record-item .ri-content { flex: 1; min-width: 0; }
+.record-item .ri-date { font-size: 11px; color: var(--text-lighter); margin-bottom: 2px; }
+.record-item .ri-desc { font-size: 13px; color: var(--text); line-height: 1.5; word-break: break-all; }
+
+.record-item .ri-tags { display: flex; flex-wrap: wrap; gap: 4px; margin-top: 4px; }
+
+.record-item .ri-tag {
+  font-size: 11px;
+  padding: 1px 8px;
+  border-radius: 10px;
+  background: #f5f5f5;
+  color: var(--text-light);
+}
+
+.record-item .ri-actions { display: flex; gap: 4px; flex-shrink: 0; }
+
+.record-section .rs-add-btn {
+  display: block;
+  width: 100%;
+  padding: 10px;
+  border: 2px dashed #e0e0e0;
+  border-radius: var(--radius-sm);
+  background: none;
+  color: var(--orange);
+  font-size: 13px;
+  font-weight: 600;
+  cursor: pointer;
+  margin-top: 8px;
+  transition: all 0.2s;
+}
+
+.record-section .rs-add-btn:active { background: var(--orange-bg); border-color: var(--orange); }
+
+/* 工人选择卡片 */
+.worker-select-card {
+  display: flex;
+  align-items: center;
+  padding: 12px;
+  border: 2px solid #eee;
+  border-radius: var(--radius-sm);
+  margin-bottom: 8px;
+  cursor: pointer;
+  transition: border-color 0.2s;
+}
+
+.worker-select-card.selected { border-color: var(--orange); background: var(--orange-bg); }
+
+.worker-select-card .worker-avatar {
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  background: var(--orange-bg);
+  color: var(--orange);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-weight: 700;
+  font-size: 16px;
+  margin-right: 10px;
+  flex-shrink: 0;
+}
+
+.worker-select-card .worker-info { flex: 1; }
+.worker-select-card .worker-info .worker-name { font-weight: 600; font-size: 14px; }
+.worker-select-card .worker-info .worker-wage { font-size: 12px; color: var(--text-light); }
+
+/* 提醒横幅 */
+.reminder-banner {
+  background: linear-gradient(135deg, #FFF3E0, #FFE0B2);
+  border: 1px solid var(--orange-light);
+  border-radius: var(--radius);
+  padding: 14px 16px;
+  margin-bottom: 14px;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.reminder-banner .reminder-icon { font-size: 28px; flex-shrink: 0; }
+.reminder-banner .reminder-text { flex: 1; font-size: 13px; color: var(--orange-dark); font-weight: 500; }
+.reminder-banner .reminder-close { background: none; border: none; font-size: 18px; cursor: pointer; color: var(--text-lighter); }
+
+@media (min-width: 481px) {
+  #app { border-left: 1px solid #eee; border-right: 1px solid #eee; }
+}
+
+#content::-webkit-scrollbar { width: 4px; }
+#content::-webkit-scrollbar-thumb { background: #ddd; border-radius: 2px; }
+</style>
+</head>
+<body>
+
+<div id="app">
+  <div id="header">⚡ 水电安装工作记录</div>
+  <div id="content"></div>
+  <div id="nav">
+    <button class="nav-item active" data-page="home"><span class="nav-icon">🏠</span>首页</button>
+    <button class="nav-item" data-page="sites"><span class="nav-icon">🏗️</span>工地</button>
+    <button class="nav-item" data-page="workers"><span class="nav-icon">👷</span>工人</button>
+    <button class="nav-item" data-page="search"><span class="nav-icon">🔍</span>搜索</button>
+    <button class="nav-item" data-page="stats"><span class="nav-icon">📊</span>统计</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="modalOverlay"><div class="modal" id="modalContent"></div></div>
+
+<div class="confirm-overlay" id="confirmOverlay">
+  <div class="confirm-dialog">
+    <p id="confirmMsg">确定要删除吗？</p>
+    <div class="confirm-actions">
+      <button class="btn" onclick="closeConfirm()">取消</button>
+      <button class="btn btn-danger" id="confirmOk">删除</button>
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<input type="file" accept="image/*" capture="environment" id="photoInput" style="display:none" onchange="handlePhotoCapture(event)">
+<input type="file" accept="image/*" capture="environment" id="recordPhotoInput" style="display:none" onchange="handleRecordPhotoCapture(event)">
+
+<script>
+/* ========================================================================
+   数据库层
+   ======================================================================== */
+const DB_NAME = 'WorkRecordDB';
+const DB_VERSION = 4;
+let db;
+
+function openDB() {
+  return new Promise((resolve, reject) => {
+    const request = indexedDB.open(DB_NAME, DB_VERSION);
+    request.onupgradeneeded = (e) => {
+      const db = e.target.result;
+      // 工地表
+      if (!db.objectStoreNames.contains('sites')) {
+        const s = db.createObjectStore('sites', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('createdAt', 'createdAt', { unique: false });
+      }
+      // 工人表
+      if (!db.objectStoreNames.contains('workers')) {
+        const s = db.createObjectStore('workers', { keyPath: 'id', autoIncrement: true });
+        s.createIndex('name', 'name', { unique: false });
+        s.createIndex('createdAt', 'createdAt', { unique: false });
+      }
+      // 出勤主表 (v4)
+      if (db.objectStoreNames.contains('workRecords')) db.deleteObjectStore('workRecords');
+      if (db.objectStoreNames.contains('attendance')) db.deleteObjectStore('attendance');
+      const attStore = db.createObjectStore('attendance', { keyPath: 'id', autoIncrement: true });
+      attStore.createIndex('siteId', 'siteId', { unique: false });
+      attStore.createIndex('siteDate', ['siteId', 'date'], { unique: false });
+
+      // 出勤工人明细表 (v4)
+      if (db.objectStoreNames.contains('attendanceWorkers')) db.deleteObjectStore('attendanceWorkers');
+      const awStore = db.createObjectStore('attendanceWorkers', { keyPath: 'id', autoIncrement: true });
+      awStore.createIndex('attendanceId', 'attendanceId', { unique: false });
+      awStore.createIndex('workerId', 'workerId', { unique: false });
+
+      // 施工记录表（合同/打压/开槽）
+      if (db.objectStoreNames.contains('siteRecords')) db.deleteObjectStore('siteRecords');
+      const srStore = db.createObjectStore('siteRecords', { keyPath: 'id', autoIncrement: true });
+      srStore.createIndex('siteId', 'siteId', { unique: false });
+      srStore.createIndex('siteType', ['siteId', 'type'], { unique: false });
+
+      // 照片表
+      if (!db.objectStoreNames.contains('photos')) {
+        const pStore = db.createObjectStore('photos', { keyPath: 'id', autoIncrement: true });
+        pStore.createIndex('siteId', 'siteId', { unique: false });
+      }
+    };
+    request.onsuccess = (e) => { db = e.target.result; resolve(db); };
+    request.onerror = (e) => reject(e.target.error);
+  });
+}
+
+function tx(storeName, mode = 'readonly') {
+  return db.transaction(storeName, mode).objectStore(storeName);
+}
+
+function promisify(request) {
+  return new Promise((resolve, reject) => {
+    request.onsuccess = () => resolve(request.result);
+    request.onerror = () => reject(request.error);
+  });
+}
+
+// 工具函数
+function dayTypeValue(dt) { return dt === 'half' ? 0.5 : 1; }
+function dayTypeLabel(dt) { return dt === 'half' ? '半天' : '全天'; }
+function sumDays(records) { return records.reduce((sum, r) => sum + dayTypeValue(r.dayType || 'full'), 0); }
+function escHtml(str) { if (!str) return ''; const div = document.createElement('div'); div.textContent = str; return div.innerHTML; }
+function formatDate(iso) { if (!iso) return ''; const d = new Date(iso); return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
+function formatMoney(n) { return Number(n || 0).toLocaleString('zh-CN'); }
+function todayStr() { return new Date().toISOString().slice(0, 10); }
+
+// ===== 工地 CRUD =====
+const SiteDB = {
+  getAll() { return promisify(tx('sites').getAll()).then(r => r.sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt))); },
+  getById(id) { return promisify(tx('sites').get(id)); },
+  add(site) { site.createdAt = new Date().toISOString(); return promisify(tx('sites','readwrite').add(site)); },
+  update(id, data) { return promisify(tx('sites','readwrite').get(id)).then(s => { if(!s) throw new Error('不存在'); Object.assign(s,data); return promisify(tx('sites','readwrite').put(s)); }); },
+  delete(id) { return promisify(tx('sites','readwrite').delete(id)); }
+};
+
+// ===== 工人 CRUD =====
+const WorkerDB = {
+  getAll() { return promisify(tx('workers').getAll()).then(r => r.sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt))); },
+  getById(id) { return promisify(tx('workers').get(id)); },
+  add(w) { w.createdAt = new Date().toISOString(); return promisify(tx('workers','readwrite').add(w)); },
+  update(id, data) { return promisify(tx('workers','readwrite').get(id)).then(w => { if(!w) throw new Error('不存在'); Object.assign(w,data); return promisify(tx('workers','readwrite').put(w)); }); },
+  delete(id) { return promisify(tx('workers','readwrite').delete(id)); },
+  search(kw) { return promisify(tx('workers').getAll()).then(r => r.filter(w => w.name.toLowerCase().includes(kw.toLowerCase()))); }
+};
+
+// ===== 出勤主表 CRUD =====
+const AttDB = {
+  getAll() { return promisify(tx('attendance').getAll()); },
+  getBySite(siteId) { return promisify(tx('attendance').index('siteId').getAll(siteId)).then(r => r.sort((a,b) => (b.date||'').localeCompare(a.date||''))); },
+  getById(id) { return promisify(tx('attendance').get(id)); },
+  getBySiteAndDate(siteId, date) {
+    return promisify(tx('attendance').index('siteDate').getAll([siteId, date])).then(r => r[0] || null);
+  },
+  async add(att) {
+    // 唯一性检查
+    const existing = await AttDB.getBySiteAndDate(att.siteId, att.date);
+    if (existing) throw new Error('DUPLICATE');
+    att.createdAt = new Date().toISOString();
+    return promisify(tx('attendance','readwrite').add(att));
+  },
+  update(id, data) {
+    return promisify(tx('attendance','readwrite').get(id)).then(a => { if(!a) throw new Error('不存在'); Object.assign(a,data); return promisify(tx('attendance','readwrite').put(a)); });
+  },
+  delete(id) { return promisify(tx('attendance','readwrite').delete(id)); },
+  deleteBySite(siteId) { return AttDB.getBySite(siteId).then(r => Promise.all(r.map(a => AttDB.delete(a.id)))); }
+};
+
+// ===== 出勤工人明细 CRUD =====
+const AttWorkerDB = {
+  getAll() { return promisify(tx('attendanceWorkers').getAll()); },
+  getByAttendance(attId) { return promisify(tx('attendanceWorkers').index('attendanceId').getAll(attId)); },
+  getByWorker(workerId) { return promisify(tx('attendanceWorkers').index('workerId').getAll(workerId)); },
+  add(aw) { aw.createdAt = new Date().toISOString(); return promisify(tx('attendanceWorkers','readwrite').add(aw)); },
+  update(id, data) { return promisify(tx('attendanceWorkers','readwrite').get(id)).then(r => { if(!r) throw new Error('不存在'); Object.assign(r,data); return promisify(tx('attendanceWorkers','readwrite').put(r)); }); },
+  delete(id) { return promisify(tx('attendanceWorkers','readwrite').delete(id)); },
+  deleteByAttendance(attId) { return AttWorkerDB.getByAttendance(attId).then(r => Promise.all(r.map(x => AttWorkerDB.delete(x.id)))); },
+  deleteByWorker(workerId) { return AttWorkerDB.getByWorker(workerId).then(r => Promise.all(r.map(x => AttWorkerDB.delete(x.id)))); }
+};
+
+// 重新计算并更新出勤总工时
+async function recalcAttendanceTotal(attId) {
+  const workers = await AttWorkerDB.getByAttendance(attId);
+  const totalHours = sumDays(workers);
+  await AttDB.update(attId, { totalHours });
+  return totalHours;
+}
+
+// ===== 施工/归档记录 CRUD =====
+const RECORD_TYPES = [
+  { type: 'contract', label: '合同记录', icon: '📝' },
+  { type: 'pressure', label: '打压记录', icon: '💧' },
+  { type: 'slotting', label: '开槽记录', icon: '🔨' },
+  { type: 'circuit', label: '线路记录', icon: '⚡' },
+  { type: 'pipe', label: '水管记录', icon: '🔧' },
+  { type: 'completion', label: '完工记录', icon: '✅' },
+];
+
+const SiteRecordDB = {
+  getAll() { return promisify(tx('siteRecords').getAll()); },
+  getBySite(siteId) { return promisify(tx('siteRecords').index('siteId').getAll(siteId)).then(r => r.sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt))); },
+  getBySiteAndType(siteId, type) { return promisify(tx('siteRecords').index('siteType').getAll([siteId, type])).then(r => r.sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt))); },
+  add(rec) { rec.createdAt = new Date().toISOString(); return promisify(tx('siteRecords','readwrite').add(rec)); },
+  update(id, data) { return promisify(tx('siteRecords','readwrite').get(id)).then(r => { if(!r) throw new Error('不存在'); Object.assign(r,data); return promisify(tx('siteRecords','readwrite').put(r)); }); },
+  delete(id) { return promisify(tx('siteRecords','readwrite').delete(id)); },
+  deleteBySite(siteId) { return SiteRecordDB.getBySite(siteId).then(r => Promise.all(r.map(x => SiteRecordDB.delete(x.id)))); }
+};
+
+// ===== 照片 CRUD =====
+const PhotoDB = {
+  getBySite(siteId) { return promisify(tx('photos').index('siteId').getAll(siteId)).then(r => r.sort((a,b) => new Date(b.createdAt)-new Date(a.createdAt))); },
+  add(siteId, data) { return promisify(tx('photos','readwrite').add({ siteId, data, createdAt: new Date().toISOString() })); },
+  delete(id) { return promisify(tx('photos','readwrite').delete(id)); },
+  deleteBySite(siteId) { return PhotoDB.getBySite(siteId).then(r => Promise.all(r.map(p => PhotoDB.delete(p.id)))); }
+};
+
+/* ========================================================================
+   UI 层
+   ======================================================================== */
+const $ = (s) => document.querySelector(s);
+const $$ = (s) => document.querySelectorAll(s);
+const content = $('#content');
+const modalOverlay = $('#modalOverlay');
+const modalContent = $('#modalContent');
+
+let currentPage = 'home';
+let currentMonth = 'all';
+let pendingPhotoSiteId = null;
+let pendingRecordPhotos = [];
+let selectedAttId = null; // 当前选中的出勤ID
+
+// Toast
+function showToast(msg) {
+  const t = $('#toast'); t.textContent = msg; t.classList.add('show');
+  clearTimeout(t._timeout); t._timeout = setTimeout(() => t.classList.remove('show'), 2000);
+}
+
+// 确认对话框
+function showConfirm(msg, cb) {
+  $('#confirmMsg').textContent = msg;
+  $('#confirmOk').onclick = () => { closeConfirm(); cb(); };
+  $('#confirmOverlay').classList.add('show');
+}
+function closeConfirm() { $('#confirmOverlay').classList.remove('show'); }
+
+// 弹窗
+function showModal(html) { modalContent.innerHTML = html; modalOverlay.classList.add('show'); }
+function closeModal() { modalOverlay.classList.remove('show'); pendingRecordPhotos = []; }
+modalOverlay.addEventListener('click', (e) => { if (e.target === modalOverlay) closeModal(); });
+
+// 导航
+$$('#nav .nav-item').forEach(item => {
+  item.addEventListener('click', () => navigateTo(item.dataset.page));
+});
+
+function navigateTo(page) {
+  currentPage = page;
+  $$('#nav .nav-item').forEach(i => i.classList.remove('active'));
+  const ni = $(`#nav .nav-item[data-page="${page}"]`);
+  if (ni) ni.classList.add('active');
+  selectedAttId = null;
+  switch (page) {
+    case 'home': renderHome(); break;
+    case 'sites': renderSitesList(); break;
+    case 'workers': renderWorkersList(); break;
+    case 'search': renderSearch(); break;
+    case 'stats': renderStats(); break;
+  }
+}
+
+/* ========================================================================
+   首页
+   ======================================================================== */
+async function renderHome() {
+  const [sites, workers, atts, attWorkers] = await Promise.all([
+    SiteDB.getAll(), WorkerDB.getAll(), AttDB.getAll(), AttWorkerDB.getAll()
+  ]);
+
+  const today = todayStr();
+  const todayAtts = atts.filter(a => a.date === today);
+  const todayWorkers = attWorkers.filter(aw => todayAtts.some(a => a.id === aw.attendanceId));
+  const todayPersonDays = sumDays(todayWorkers);
+
+  // 检查今天是否已记录
+  const hasRecordedToday = todayAtts.length > 0;
+
+  content.innerHTML = `
+    ${!hasRecordedToday ? `
+    <div class="reminder-banner" id="reminderBanner">
+      <span class="reminder-icon">🔔</span>
+      <span class="reminder-text">今天还没有记录出勤哦！<br>快去「工地」页面添加今天的出勤吧</span>
+      <button class="reminder-close" onclick="document.getElementById('reminderBanner').style.display='none'">×</button>
+    </div>
+    ` : ''}
+
+    <div class="stats-row">
+      <div class="stat-card">
+        <div class="stat-num">${sites.length}</div>
+        <div class="stat-label">工地总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${workers.length}</div>
+        <div class="stat-label">工人总数</div>
+      </div>
+      <div class="stat-card">
+        <div class="stat-num">${todayPersonDays}</div>
+        <div class="stat-label">今日工时</div>
+      </div>
+    </div>
+
+    <div style="font-size:15px;font-weight:600;margin-bottom:10px;color:var(--text);">📌 最近工地</div>
+    ${sites.length === 0 ? `
+      <div class="empty-state"><div class="empty-icon">🏗️</div><div class="empty-text">还没有添加工地<br>点击底部「工地」开始记录吧</div></div>
+    ` : sites.slice(0, 3).map(s => {
+      const siteAtts = atts.filter(a => a.siteId === s.id);
+      const totalDays = siteAtts.reduce((sum, a) => sum + (a.totalHours || 0), 0);
+      return `
+        <div class="card" onclick="renderSiteDetail(${s.id})">
+          <div class="card-title">📍 ${escHtml(s.address)}</div>
+          <div class="card-info">
+            <span class="card-badge">👤 ${escHtml(s.bossName || '未知')}</span>
+            <span class="card-badge">📅 ${siteAtts.length}天出勤</span>
+            <span class="card-badge">⏱ ${totalDays}工时</span>
+          </div>
+          <div class="card-arrow">›</div>
+        </div>
+      `;
+    }).join('')}
+  `;
+}
+
+/* ========================================================================
+   工地列表
+   ======================================================================== */
+async function renderSitesList() {
+  const [sites, atts] = await Promise.all([SiteDB.getAll(), AttDB.getAll()]);
+  content.innerHTML = `
+    <div style="font-size:15px;font-weight:600;margin-bottom:10px;color:var(--text);">🏗️ 全部工地 (${sites.length})</div>
+    ${sites.length === 0 ? `
+      <div class="empty-state"><div class="empty-icon">🏗️</div><div class="empty-text">还没有添加工地<br>点击下方按钮添加第一个工地</div></div>
+    ` : sites.map(s => {
+      const siteAtts = atts.filter(a => a.siteId === s.id);
+      const totalHours = siteAtts.reduce((sum, a) => sum + (a.totalHours || 0), 0);
+      return `
+        <div class="card" onclick="renderSiteDetail(${s.id})">
+          <div class="card-title">📍 ${escHtml(s.address)}</div>
+          <div class="card-info">
+            <span class="card-badge">👤 ${escHtml(s.bossName || '未知老板')}</span>
+            <span class="card-badge">📅 ${siteAtts.length}天出勤</span>
+            <span class="card-badge">⏱ ${totalHours}工时</span>
+            <div style="margin-top:4px;font-size:12px;color:var(--text-lighter);">${s.bossPhone ? '📞 '+escHtml(s.bossPhone)+' · ' : ''}${formatDate(s.createdAt)}</div>
+          </div>
+          <div class="card-arrow">›</div>
+        </div>
+      `;
+    }).join('')}
+    <button class="fab" onclick="showAddSiteModal()" title="添加工地">+</button>
+  `;
+}
+
+/* ========================================================================
+   工地详情 —— 核心重构
+   ======================================================================== */
+async function renderSiteDetail(siteId) {
+  currentPage = 'siteDetail';
+  $$('#nav .nav-item').forEach(i => i.classList.remove('active'));
+
+  const site = await SiteDB.getById(siteId);
+  if (!site) { showToast('工地不存在'); navigateTo('sites'); return; }
+
+  const [attendanceList, allWorkers, photos, allSiteRecords] = await Promise.all([
+    AttDB.getBySite(siteId),
+    WorkerDB.getAll(),
+    PhotoDB.getBySite(siteId),
+    SiteRecordDB.getBySite(siteId)
+  ]);
+
+  const workerMap = {}; allWorkers.forEach(w => { workerMap[w.id] = w; });
+
+  // ===== 如果没有选中的出勤日，自动选最新 =====
+  if (!selectedAttId && attendanceList.length > 0) {
+    selectedAttId = attendanceList[0].id;
+  }
+
+  const selectedAtt = attendanceList.find(a => a.id === selectedAttId) || null;
+  let selectedWorkers = [];
+  if (selectedAtt) {
+    selectedWorkers = await AttWorkerDB.getByAttendance(selectedAtt.id);
+  }
+
+  // ===== 日期选择器 =====
+  const dateChipsHtml = attendanceList.map(a => `
+    <div class="date-chip ${a.id === selectedAttId ? 'active' : ''}" onclick="selectAttendanceDate(${siteId}, ${a.id})">
+      ${a.date || '?'}<br><small>${a.totalHours||0}工时</small>
+    </div>
+  `).join('');
+
+  // ===== 出勤汇总 =====
+  const workerCount = selectedWorkers.length;
+  const totalHours = selectedAtt ? (selectedAtt.totalHours || sumDays(selectedWorkers)) : 0;
+
+  // ===== 选中日出勤工人列表 =====
+  let workersHtml = '';
+  if (!selectedAtt) {
+    workersHtml = `<div class="empty-state" style="padding:20px;"><div class="empty-icon">📅</div><div class="empty-text">请先添加出勤日期</div></div>`;
+  } else if (selectedWorkers.length === 0) {
+    workersHtml = `<div class="empty-state" style="padding:20px;"><div class="empty-icon">👷</div><div class="empty-text">该日期还没有添加工人</div></div>`;
+  } else {
+    workersHtml = selectedWorkers.map(aw => {
+      const w = workerMap[aw.workerId];
+      const dayPay = dayTypeValue(aw.dayType || 'full') * (aw.dailyWage || 0);
+      return `
+        <div class="card" style="cursor:default;">
+          <div style="display:flex;justify-content:space-between;align-items:center;">
+            <div>
+              <div class="card-title">${w ? escHtml(w.name) : '(工人已删除)'}</div>
+              <div class="card-info">
+                <span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:11px;background:${aw.dayType==='half'?'#FFF3E0':'#E8F5E9'};color:${aw.dayType==='half'?'#E65100':'#2E7D32'};margin-right:6px;">${dayTypeLabel(aw.dayType||'full')}</span>
+                <span>日薪${formatMoney(aw.dailyWage)}元</span>
+                <span style="color:var(--orange);font-weight:600;margin-left:4px;">= ${formatMoney(dayPay)}元</span>
+              </div>
+            </div>
+            <div style="display:flex;gap:4px;">
+              <button class="btn btn-sm" onclick="event.stopPropagation();showEditAttWorkerModal(${aw.id},${siteId})">✏️</button>
+              <button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteAttWorker(${aw.id},${siteId})">×</button>
+            </div>
+          </div>
+        </div>
+      `;
+    }).join('');
+  }
+
+  // ===== 施工记录（合同/打压/开槽 —— 始终可见） =====
+  let activeRecordsHtml = '';
+  RECORD_TYPES.forEach(rt => {
+    const typeRecords = allSiteRecords.filter(r => r.type === rt.type);
+    activeRecordsHtml += buildRecordSection(rt, typeRecords, siteId);
+  });
+
+  content.innerHTML = `
+    <div class="detail-header">
+      <button class="back-btn" onclick="navigateTo('sites')">←</button>
+      <span class="detail-title">工地详情</span>
+      <div class="detail-actions">
+        <button class="btn btn-sm" onclick="showEditSiteModal(${siteId})">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteSite(${siteId})">🗑️</button>
+      </div>
+    </div>
+
+    <!-- 基本信息 -->
+    <div class="card" style="cursor:default;">
+      <div class="card-title">📍 ${escHtml(site.address)}</div>
+      <div class="card-info">
+        <div>👤 老板：${escHtml(site.bossName || '未填写')}</div>
+        <div>📞 电话：${escHtml(site.bossPhone || '未填写')}</div>
+        ${site.notes ? `<div>📝 备注：${escHtml(site.notes)}</div>` : ''}
+        <div style="margin-top:4px;font-size:12px;color:var(--text-lighter);">创建于 ${formatDate(site.createdAt)}</div>
+      </div>
+    </div>
+
+    <!-- 日期选择器 -->
+    <div style="font-size:15px;font-weight:600;margin:16px 0 8px;display:flex;justify-content:space-between;align-items:center;">
+      <span>📅 出勤日期</span>
+      <button class="btn btn-primary btn-sm" onclick="showAddAttendanceModal(${siteId})">+ 添加出勤日</button>
+    </div>
+    <div class="date-selector">
+      ${dateChipsHtml || '<span style="font-size:12px;color:var(--text-lighter);">暂无出勤日期，点击右上角添加</span>'}
+    </div>
+
+    ${selectedAtt ? `
+    <!-- 出勤汇总 -->
+    <div class="att-summary">
+      <div class="att-stat">
+        <div class="val" id="attWorkerCount">${workerCount}</div>
+        <div class="lbl">👷 出勤人数</div>
+      </div>
+      <div class="att-stat">
+        <div class="val"><input type="number" id="attTotalHours" value="${totalHours}" step="0.5" min="0" onchange="updateAttHours(${selectedAtt.id}, this.value)" style="width:60px;"></div>
+        <div class="lbl">⏱ 总工时(可调)</div>
+      </div>
+      <div class="att-stat">
+        <button class="btn btn-sm btn-danger" onclick="deleteAttendance(${selectedAtt.id}, ${siteId})">🗑️<br>删出勤</button>
+      </div>
+    </div>
+
+    <!-- 选中日的工人列表 -->
+    <div style="font-size:15px;font-weight:600;margin:12px 0 8px;display:flex;justify-content:space-between;align-items:center;">
+      <span>👷 ${selectedAtt.date} 出勤工人 (${workerCount}人)</span>
+      <button class="btn btn-primary btn-sm" onclick="showAddWorkerToAttModal(${siteId}, ${selectedAtt.id})">+ 添加工人</button>
+    </div>
+    ${workersHtml}
+    ` : ''}
+
+    <!-- 施工记录（合同/打压/开槽） -->
+    <div style="font-size:15px;font-weight:600;margin:16px 0 10px;color:var(--text);">📋 施工记录</div>
+    ${activeRecordsHtml}
+
+    <!-- 现场照片 -->
+    <div style="font-size:15px;font-weight:600;margin:16px 0 10px;display:flex;justify-content:space-between;align-items:center;">
+      <span>📷 现场照片 (${photos.length})</span>
+      <button class="btn btn-primary btn-sm" onclick="triggerPhotoCapture(${siteId})">📷 拍照</button>
+    </div>
+    ${photos.length === 0 ? `<div class="empty-state" style="padding:30px;"><div class="empty-icon">📷</div><div class="empty-text">还没有照片</div></div>` : `
+      <div class="photo-grid">${photos.map(p => `
+        <div class="photo-item" onclick="viewPhoto('${p.data}')"><img src="${p.data}" loading="lazy"><button class="photo-delete" onclick="event.stopPropagation();deletePhoto(${p.id},${siteId})">×</button></div>
+      `).join('')}</div>
+    `}
+  `;
+}
+
+// 选择出勤日期
+async function selectAttendanceDate(siteId, attId) {
+  selectedAttId = attId;
+  await renderSiteDetail(siteId);
+}
+
+// 构建记录折叠面板
+function buildRecordSection(rt, typeRecords, siteId) {
+  return `
+    <div class="record-section" id="rs-${rt.type}">
+      <div class="record-section-header" onclick="toggleSection('rs-${rt.type}')">
+        <span class="rs-icon">${rt.icon}</span>
+        <span class="rs-label">${rt.label}</span>
+        <span class="rs-count">${typeRecords.length}</span>
+        <span class="rs-arrow">▼</span>
+      </div>
+      <div class="record-section-body">
+        ${typeRecords.length === 0 ? `<div style="text-align:center;padding:16px;color:var(--text-lighter);font-size:13px;">暂无记录</div>` : typeRecords.map(r => {
+          let tagsHtml = '';
+          try { const extra = JSON.parse(r.extraData || '{}'); Object.entries(extra).forEach(([k,v]) => { if(v!==undefined && v!==null && v!=='') tagsHtml += `<span class="ri-tag">${escHtml(String(v))}</span>`; }); } catch(e) {}
+          let photosHtml = '';
+          try { const phs = JSON.parse(r.photos || '[]'); if(phs.length>0) { photosHtml = `<div class="photo-grid" style="margin-top:6px;grid-template-columns:repeat(${Math.min(phs.length,4)},1fr);">`+phs.map(p => `<div class="photo-item" onclick="event.stopPropagation();viewPhoto('${p}')"><img src="${p}" loading="lazy"></div>`).join('')+`</div>`; } } catch(e) {}
+          return `<div class="record-item"><div style="display:flex;justify-content:space-between;align-items:flex-start;"><div class="ri-content"><div class="ri-date">${r.date||'未填日期'}</div><div class="ri-desc">${escHtml(r.content||'无备注')}</div><div class="ri-tags">${tagsHtml}</div></div><div class="ri-actions"><button class="btn btn-sm" onclick="event.stopPropagation();showEditSiteRecordModal(${r.id},'${rt.type}',${siteId})">✏️</button><button class="btn btn-sm btn-danger" onclick="event.stopPropagation();deleteSiteRecord(${r.id},${siteId})">×</button></div></div>${photosHtml}</div>`;
+        }).join('')}
+        <button class="rs-add-btn" onclick="event.stopPropagation();showAddSiteRecordModal('${rt.type}',${siteId})">+ 添加${rt.label}</button>
+      </div>
+    </div>
+  `;
+}
+
+function toggleSection(id) { const el = document.getElementById(id); if (el) el.classList.toggle('open'); }
+
+// ===== 添加工人到出勤日 =====
+async function showAddWorkerToAttModal(siteId, attId) {
+  const [att, workers] = await Promise.all([AttDB.getById(attId), WorkerDB.getAll()]);
+  if (!att) return;
+  const existing = await AttWorkerDB.getByAttendance(attId);
+  const existingIds = new Set(existing.map(x => x.workerId));
+  const available = workers.filter(w => !existingIds.has(w.id));
+
+  showModal(`
+    <h3>➕ 添加出勤工人</h3>
+    <div style="font-size:13px;color:var(--text-light);margin-bottom:12px;">📅 ${att.date}</div>
+    ${available.length === 0 ? `<div style="text-align:center;padding:20px;color:var(--text-lighter);">所有工人已添加到此日期，或请<a href="javascript:void(0)" style="color:var(--orange);" onclick="closeModal();showAddWorkerModal()">新建工人</a></div>` : `
+      <div style="font-weight:600;font-size:13px;margin-bottom:8px;">选择工人：</div>
+      <div id="workerSelectList">
+        ${available.map(w => `<div class="worker-select-card" onclick="selectWorkerCard(${w.id},this)" data-wid="${w.id}"><div class="worker-avatar">${w.name.charAt(0)}</div><div class="worker-info"><div class="worker-name">${escHtml(w.name)}</div><div class="worker-wage">💰 ${formatMoney(w.dailyWage)}元/天</div></div></div>`).join('')}
+      </div>
+      <div class="form-group" style="margin-top:12px;">
+        <label>⏱️ 全天 / 半天 *</label>
+        <div style="display:flex;gap:10px;">
+          <label id="dayFullLabel" style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px;border:2px solid var(--orange);border-radius:8px;background:var(--orange-bg);color:var(--orange-dark);font-weight:600;cursor:pointer;" onclick="selectDayTypeUI('full')"><input type="radio" name="dayType" value="full" checked style="display:none;"> ☀️ 全天</label>
+          <label id="dayHalfLabel" style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px;border:2px solid #e0e0e0;border-radius:8px;background:#fff;color:var(--text-light);font-weight:600;cursor:pointer;" onclick="selectDayTypeUI('half')"><input type="radio" name="dayType" value="half" style="display:none;"> 🌓 半天</label>
+        </div>
+      </div>
+      <div style="font-size:12px;color:var(--text-lighter);margin-bottom:8px;">💡 没有想要的工人？<a href="javascript:void(0)" style="color:var(--orange);" onclick="closeModal();showAddWorkerModal()">点击这里新建</a></div>
+      <div class="form-actions"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="addWorkerToAtt(${attId},${siteId})">✓ 添加</button></div>
+    `}
+  `);
+}
+
+let selectedWorkerId = null;
+function selectWorkerCard(wid, el) {
+  selectedWorkerId = wid;
+  $$('#workerSelectList .worker-select-card').forEach(c => c.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function selectDayTypeUI(type) {
+  const fullL = document.getElementById('dayFullLabel');
+  const halfL = document.getElementById('dayHalfLabel');
+  if (!fullL || !halfL) return;
+  if (type === 'full') {
+    fullL.style.borderColor='var(--orange)'; fullL.style.background='var(--orange-bg)'; fullL.style.color='var(--orange-dark)';
+    halfL.style.borderColor='#e0e0e0'; halfL.style.background='#fff'; halfL.style.color='var(--text-light)';
+    fullL.querySelector('input').checked = true;
+  } else {
+    halfL.style.borderColor='var(--orange)'; halfL.style.background='var(--orange-bg)'; halfL.style.color='var(--orange-dark)';
+    fullL.style.borderColor='#e0e0e0'; fullL.style.background='#fff'; fullL.style.color='var(--text-light)';
+    halfL.querySelector('input').checked = true;
+  }
+}
+
+async function addWorkerToAtt(attId, siteId) {
+  if (!selectedWorkerId) { showToast('请先选择一个工人'); return; }
+  const dayType = document.querySelector('input[name="dayType"]:checked')?.value || 'full';
+  const worker = await WorkerDB.getById(selectedWorkerId);
+  if (!worker) { showToast('工人不存在'); return; }
+
+  await AttWorkerDB.add({ attendanceId: attId, workerId: selectedWorkerId, dayType, dailyWage: worker.dailyWage });
+  await recalcAttendanceTotal(attId);
+  closeModal();
+  showToast('✅ 工人已添加');
+  renderSiteDetail(siteId);
+}
+
+// 编辑出勤工人
+async function showEditAttWorkerModal(awId, siteId) {
+  const aw = await promisify(tx('attendanceWorkers').get(awId));
+  if (!aw) return;
+  const worker = await WorkerDB.getById(aw.workerId);
+  const isFull = aw.dayType === 'full';
+
+  showModal(`
+    <h3>✏️ 修改出勤</h3>
+    <div style="font-size:13px;color:var(--text-light);margin-bottom:12px;">👷 ${worker ? escHtml(worker.name) : '(未知)'}</div>
+    <div class="form-group">
+      <label>⏱️ 全天 / 半天</label>
+      <div style="display:flex;gap:10px;">
+        <label id="dayFullLabel" style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px;border:2px solid ${isFull?'var(--orange)':'#e0e0e0'};border-radius:8px;background:${isFull?'var(--orange-bg)':'#fff'};color:${isFull?'var(--orange-dark)':'var(--text-light)'};font-weight:600;cursor:pointer;" onclick="selectDayTypeUI('full')"><input type="radio" name="dayType" value="full" ${isFull?'checked':''} style="display:none;"> ☀️ 全天</label>
+        <label id="dayHalfLabel" style="flex:1;display:flex;align-items:center;justify-content:center;padding:10px;border:2px solid ${!isFull?'var(--orange)':'#e0e0e0'};border-radius:8px;background:${!isFull?'var(--orange-bg)':'#fff'};color:${!isFull?'var(--orange-dark)':'var(--text-light)'};font-weight:600;cursor:pointer;" onclick="selectDayTypeUI('half')"><input type="radio" name="dayType" value="half" ${!isFull?'checked':''} style="display:none;"> 🌓 半天</label>
+      </div>
+    </div>
+    <div class="form-actions"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="updateAttWorker(${awId},${siteId})">✓ 保存</button></div>
+  `);
+}
+
+async function updateAttWorker(awId, siteId) {
+  const dayType = document.querySelector('input[name="dayType"]:checked')?.value || 'full';
+  const aw = await promisify(tx('attendanceWorkers').get(awId));
+  if (!aw) return;
+  await AttWorkerDB.update(awId, { dayType });
+  await recalcAttendanceTotal(aw.attendanceId);
+  closeModal();
+  showToast('✅ 已更新');
+  renderSiteDetail(siteId);
+}
+
+async function deleteAttWorker(awId, siteId) {
+  showConfirm('确定删除该工人的出勤记录吗？', async () => {
+    const aw = await promisify(tx('attendanceWorkers').get(awId));
+    await AttWorkerDB.delete(awId);
+    if (aw) await recalcAttendanceTotal(aw.attendanceId);
+    showToast('🗑️ 已删除');
+    renderSiteDetail(siteId);
+  });
+}
+
+async function updateAttHours(attId, val) {
+  const hours = parseFloat(val) || 0;
+  await AttDB.update(attId, { totalHours: hours });
+  showToast('✅ 工时已更新');
+}
+
+// ===== 出勤日 CRUD =====
+function showAddAttendanceModal(siteId) {
+  showModal(`
+    <h3>📅 添加出勤日</h3>
+    <div class="form-group"><label>📅 日期 *</label><input type="date" id="attDate" value="${todayStr()}"></div>
+    <div class="form-group"><label>📝 备注</label><textarea id="attNotes" placeholder="选填..."></textarea></div>
+    <div class="form-actions"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="addAttendance(${siteId})">✓ 创建</button></div>
+  `);
+}
+
+async function addAttendance(siteId) {
+  const date = document.getElementById('attDate')?.value || '';
+  if (!date) { showToast('请选择日期'); return; }
+  const notes = document.getElementById('attNotes')?.value?.trim() || '';
+  try {
+    const id = await AttDB.add({ siteId, date, totalHours: 0, notes });
+    selectedAttId = id;
+    closeModal();
+    showToast('✅ 出勤日已创建');
+    renderSiteDetail(siteId);
+  } catch(e) {
+    if (e.message === 'DUPLICATE') { showToast('⚠️ 该日期已有出勤记录，不能重复创建'); }
+    else { showToast('❌ 创建失败'); console.error(e); }
+  }
+}
+
+async function deleteAttendance(attId, siteId) {
+  showConfirm('删除出勤日将同时删除该日所有工人记录，确定删除？', async () => {
+    await AttWorkerDB.deleteByAttendance(attId);
+    await AttDB.delete(attId);
+    if (selectedAttId === attId) selectedAttId = null;
+    showToast('🗑️ 出勤日已删除');
+    renderSiteDetail(siteId);
+  });
+}
+
+// ===== 施工/归档记录弹窗 =====
+function getRecordTypeFields(type) {
+  switch(type) {
+    case 'contract': return [{key:'amount', label:'合同金额(元)', type:'number', placeholder:'例如：5000'}];
+    case 'pressure': return [{key:'pressure', label:'打压压力(MPa)', type:'text', placeholder:'例如：0.8'}, {key:'qualified', label:'是否合格', type:'select', options:['','合格','不合格']}];
+    case 'slotting': return [{key:'location', label:'开槽位置', type:'text', placeholder:'例如：客厅墙面'}];
+    case 'circuit': return [{key:'circuitType', label:'线路类型', type:'select', options:['','明线','暗线','综合布线']}];
+    case 'pipe': return [{key:'pipeType', label:'水管类型', type:'select', options:['','冷水管','热水管','排水管','暖气管']}];
+    case 'completion': return [{key:'acceptanceResult', label:'验收结果', type:'select', options:['','验收通过','需整改','未验收']}];
+    default: return [];
+  }
+}
+
+function renderExtraFields(type, extraData = {}) {
+  return getRecordTypeFields(type).map(f => {
+    if (f.type === 'select') return `<div class="form-group"><label>${f.label}</label><select id="ef_${f.key}">${f.options.map(o => `<option value="${o}" ${(extraData[f.key]||'')===o?'selected':''}>${o||'请选择'}</option>`).join('')}</select></div>`;
+    return `<div class="form-group"><label>${f.label}${f.required?' *':''}</label><input type="${f.type}" id="ef_${f.key}" value="${escHtml(extraData[f.key]||'')}" placeholder="${f.placeholder||''}"></div>`;
+  }).join('');
+}
+
+function collectExtraFields(type) {
+  const data = {};
+  getRecordTypeFields(type).forEach(f => { const el = document.getElementById('ef_'+f.key); if(el){ const v=el.value.trim(); if(v) data[f.key]=(f.type==='number'?parseFloat(v)||0:v); } });
+  return data;
+}
+
+function showAddSiteRecordModal(type, siteId) {
+  pendingRecordPhotos = [];
+  const rt = RECORD_TYPES.find(t => t.type === type);
+
+  showModal(`
+    <h3>➕ ${rt ? rt.icon+' 添加'+rt.label : '添加记录'}</h3>
+    <div class="form-group"><label>📅 日期 *</label><input type="date" id="srDate" value="${todayStr()}"></div>
+    ${renderExtraFields(type)}
+    <div class="form-group"><label>📝 备注</label><textarea id="srContent" placeholder="记录详情..."></textarea></div>
+    <div class="form-group"><label>📷 照片</label><div id="recordPhotoPreview" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;"></div>
+      <button type="button" class="btn btn-sm" style="border:2px dashed #ddd;width:100%;padding:12px;color:var(--orange);" onclick="event.preventDefault();document.getElementById('recordPhotoInput').click()">📷 拍照添加照片</button></div>
+    <div class="form-actions"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="addSiteRecord('${type}',${siteId})">✓ 保存</button></div>
+  `);
+}
+
+function refreshRecordPhotoPreview() {
+  const c = document.getElementById('recordPhotoPreview'); if(!c) return;
+  c.innerHTML = pendingRecordPhotos.map((p,i) => `<div style="position:relative;width:60px;height:60px;border-radius:6px;overflow:hidden;flex-shrink:0;"><img src="${p}" style="width:100%;height:100%;object-fit:cover;"><button onclick="pendingRecordPhotos.splice(${i},1);refreshRecordPhotoPreview();" style="position:absolute;top:2px;right:2px;width:18px;height:18px;border-radius:50%;background:rgba(0,0,0,0.5);color:#fff;border:none;font-size:10px;cursor:pointer;">×</button></div>`).join('');
+}
+
+async function handleRecordPhotoCapture(event) {
+  const file = event.target.files[0]; if (!file) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const img = new Image();
+    img.onload = async () => {
+      const canvas = document.createElement('canvas'); const maxW = 600; let w=img.width, h=img.height;
+      if(w>maxW){ h=(h*maxW)/w; w=maxW; } canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      pendingRecordPhotos.push(canvas.toDataURL('image/jpeg',0.65));
+      refreshRecordPhotoPreview();
+    }; img.src = e.target.result;
+  }; reader.readAsDataURL(file); event.target.value = '';
+}
+
+async function addSiteRecord(type, siteId) {
+  const date = document.getElementById('srDate')?.value || '';
+  const content = document.getElementById('srContent')?.value?.trim() || '';
+  const extraData = collectExtraFields(type);
+  if (type === 'contract') { const amt = extraData.amount; if (!amt || amt <= 0) { showToast('请输入合同金额'); return; } }
+  await SiteRecordDB.add({ siteId, type, date, content, extraData: JSON.stringify(extraData), photos: JSON.stringify(pendingRecordPhotos) });
+  pendingRecordPhotos = []; closeModal(); showToast('✅ 记录已添加'); renderSiteDetail(siteId);
+}
+
+async function showEditSiteRecordModal(recordId, type, siteId) {
+  const record = await promisify(tx('siteRecords').get(recordId));
+  if (!record) { showToast('记录不存在'); return; }
+  const rt = RECORD_TYPES.find(t => t.type === type);
+  let extraData = {}; try { extraData = JSON.parse(record.extraData || '{}'); } catch(e) {}
+  try { pendingRecordPhotos = JSON.parse(record.photos || '[]'); } catch(e) { pendingRecordPhotos = []; }
+
+  showModal(`
+    <h3>✏️ 编辑${rt ? rt.label : '记录'}</h3>
+    <div class="form-group"><label>📅 日期</label><input type="date" id="srDate" value="${record.date||''}"></div>
+    ${renderExtraFields(type, extraData)}
+    <div class="form-group"><label>📝 备注</label><textarea id="srContent">${escHtml(record.content||'')}</textarea></div>
+    <div class="form-group"><label>📷 照片 (${pendingRecordPhotos.length}张)</label><div id="recordPhotoPreview" style="display:flex;gap:6px;flex-wrap:wrap;margin-bottom:8px;"></div>
+      <button type="button" class="btn btn-sm" style="border:2px dashed #ddd;width:100%;padding:12px;color:var(--orange);" onclick="event.preventDefault();document.getElementById('recordPhotoInput').click()">📷 拍照添加照片</button></div>
+    <div class="form-actions"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="updateSiteRecord(${recordId},'${type}',${siteId})">✓ 保存</button></div>
+  `);
+  setTimeout(refreshRecordPhotoPreview, 50);
+}
+
+async function updateSiteRecord(recordId, type, siteId) {
+  const date = document.getElementById('srDate')?.value || '';
+  const content = document.getElementById('srContent')?.value?.trim() || '';
+  const extraData = collectExtraFields(type);
+  if (type === 'contract') { const amt = extraData.amount; if (!amt || amt <= 0) { showToast('请输入合同金额'); return; } }
+  await SiteRecordDB.update(recordId, { date, content, extraData: JSON.stringify(extraData), photos: JSON.stringify(pendingRecordPhotos) });
+  pendingRecordPhotos = []; closeModal(); showToast('✅ 记录已更新'); renderSiteDetail(siteId);
+}
+
+async function deleteSiteRecord(recordId, siteId) {
+  showConfirm('确定要删除这条记录吗？', async () => { await SiteRecordDB.delete(recordId); showToast('🗑️ 记录已删除'); renderSiteDetail(siteId); });
+}
+
+/* ========================================================================
+   工地弹窗
+   ======================================================================== */
+function showAddSiteModal() {
+  showModal(`
+    <h3>🏗️ 添加工地</h3>
+    <div class="form-group"><label>📍 工地地址 *</label><input type="text" id="siteAddress" placeholder="例如：XX小区3栋501"></div>
+    <div class="form-group"><label>👤 老板姓名</label><input type="text" id="siteBossName" placeholder="老板怎么称呼"></div>
+    <div class="form-group"><label>📞 老板电话</label><input type="tel" id="siteBossPhone" placeholder="手机号码"></div>
+    <div class="form-group"><label>📝 备注</label><textarea id="siteNotes" placeholder="其他需要记录的信息..."></textarea></div>
+    <div class="form-actions"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="addSite()">✓ 保存</button></div>
+  `);
+}
+
+async function showEditSiteModal(siteId) {
+  const site = await SiteDB.getById(siteId); if (!site) return;
+  showModal(`
+    <h3>✏️ 编辑工地</h3>
+    <div class="form-group"><label>📍 工地地址 *</label><input type="text" id="siteAddress" value="${escHtml(site.address||'')}"></div>
+    <div class="form-group"><label>👤 老板姓名</label><input type="text" id="siteBossName" value="${escHtml(site.bossName||'')}"></div>
+    <div class="form-group"><label>📞 老板电话</label><input type="tel" id="siteBossPhone" value="${escHtml(site.bossPhone||'')}"></div>
+    <div class="form-group"><label>📝 备注</label><textarea id="siteNotes">${escHtml(site.notes||'')}</textarea></div>
+    <div class="form-actions"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="updateSite(${siteId})">✓ 保存</button></div>
+  `);
+}
+
+async function addSite() {
+  const address = document.getElementById('siteAddress')?.value?.trim();
+  if (!address) { showToast('请输入工地地址'); return; }
+  await SiteDB.add({ address, bossName: document.getElementById('siteBossName')?.value?.trim()||'', bossPhone: document.getElementById('siteBossPhone')?.value?.trim()||'', notes: document.getElementById('siteNotes')?.value?.trim()||'' });
+  closeModal(); showToast('✅ 工地已添加'); renderSitesList();
+}
+
+async function updateSite(siteId) {
+  const address = document.getElementById('siteAddress')?.value?.trim();
+  if (!address) { showToast('请输入工地地址'); return; }
+  await SiteDB.update(siteId, { address, bossName: document.getElementById('siteBossName')?.value?.trim()||'', bossPhone: document.getElementById('siteBossPhone')?.value?.trim()||'', notes: document.getElementById('siteNotes')?.value?.trim()||'' });
+  closeModal(); showToast('✅ 工地已更新'); renderSiteDetail(siteId);
+}
+
+async function deleteSite(siteId) {
+  showConfirm('删除工地将同时删除所有出勤记录、工人记录、施工记录和照片，确定删除？', async () => {
+    const atts = await AttDB.getBySite(siteId);
+    for (const a of atts) { await AttWorkerDB.deleteByAttendance(a.id); }
+    await AttDB.deleteBySite(siteId);
+    await SiteRecordDB.deleteBySite(siteId);
+    await PhotoDB.deleteBySite(siteId);
+    await SiteDB.delete(siteId);
+    selectedAttId = null;
+    showToast('🗑️ 工地已删除'); navigateTo('sites');
+  });
+}
+
+/* ========================================================================
+   工人弹窗
+   ======================================================================== */
+function showAddWorkerModal() {
+  showModal(`
+    <h3>👷 添加工人</h3>
+    <div class="form-group"><label>👤 姓名 *</label><input type="text" id="workerName" placeholder="师傅姓名"></div>
+    <div class="form-group"><label>💰 日薪（元/天）*</label><input type="number" id="workerDailyWage" placeholder="例如：350" min="0" step="1"></div>
+    <div class="form-group"><label>📞 电话（选填）</label><input type="tel" id="workerPhone" placeholder="手机号码"></div>
+    <div class="form-actions"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="addWorker()">✓ 保存</button></div>
+  `);
+}
+
+async function showEditWorkerModal(workerId) {
+  const worker = await WorkerDB.getById(workerId); if (!worker) return;
+  showModal(`
+    <h3>✏️ 编辑工人</h3>
+    <div class="form-group"><label>👤 姓名 *</label><input type="text" id="workerName" value="${escHtml(worker.name||'')}"></div>
+    <div class="form-group"><label>💰 日薪（元/天）*</label><input type="number" id="workerDailyWage" value="${worker.dailyWage||''}" min="0" step="1"></div>
+    <div class="form-group"><label>📞 电话（选填）</label><input type="tel" id="workerPhone" value="${escHtml(worker.phone||'')}"></div>
+    <div class="form-actions"><button class="btn" onclick="closeModal()">取消</button><button class="btn btn-primary" onclick="updateWorker(${workerId})">✓ 保存</button></div>
+  `);
+}
+
+async function addWorker() {
+  const name = document.getElementById('workerName')?.value?.trim();
+  const dailyWage = parseFloat(document.getElementById('workerDailyWage')?.value) || 0;
+  if (!name) { showToast('请输入工人姓名'); return; }
+  if (!dailyWage || dailyWage <= 0) { showToast('请输入有效的日薪'); return; }
+  await WorkerDB.add({ name, dailyWage, phone: document.getElementById('workerPhone')?.value?.trim()||'' });
+  closeModal(); showToast('✅ 工人已添加'); renderWorkersList();
+}
+
+async function updateWorker(workerId) {
+  const name = document.getElementById('workerName')?.value?.trim();
+  const dailyWage = parseFloat(document.getElementById('workerDailyWage')?.value) || 0;
+  if (!name) { showToast('请输入工人姓名'); return; }
+  if (!dailyWage || dailyWage <= 0) { showToast('请输入有效的日薪'); return; }
+  await WorkerDB.update(workerId, { name, dailyWage, phone: document.getElementById('workerPhone')?.value?.trim()||'' });
+  closeModal(); showToast('✅ 工人已更新'); renderWorkerDetail(workerId);
+}
+
+async function deleteWorker(workerId) {
+  showConfirm('删除工人将同时删除该工人的所有出勤记录，确定删除？', async () => {
+    await AttWorkerDB.deleteByWorker(workerId);
+    // 重新计算相关出勤的总工时
+    const allAtts = await AttDB.getAll();
+    const affected = allAtts.filter(async a => { const aws = await AttWorkerDB.getByAttendance(a.id); return aws.some(x => x.workerId === workerId); });
+    await WorkerDB.delete(workerId);
+    showToast('🗑️ 工人已删除'); navigateTo('workers');
+  });
+}
+
+/* ========================================================================
+   工人列表 & 工人详情
+   ======================================================================== */
+async function renderWorkersList() {
+  const [workers, attWorkers] = await Promise.all([WorkerDB.getAll(), AttWorkerDB.getAll()]);
+  content.innerHTML = `
+    <div style="font-size:15px;font-weight:600;margin-bottom:10px;color:var(--text);">👷 全部工人 (${workers.length})</div>
+    ${workers.length === 0 ? `<div class="empty-state"><div class="empty-icon">👷</div><div class="empty-text">还没有添加工人</div></div>` : workers.map(w => {
+      const wrs = attWorkers.filter(r => r.workerId === w.id);
+      const totalDays = sumDays(wrs);
+      const totalPay = totalDays * (w.dailyWage || 0);
+      return `<div class="card" onclick="renderWorkerDetail(${w.id})"><div class="card-title">👷 ${escHtml(w.name)}</div><div class="card-info"><span class="card-badge">💰 ${formatMoney(w.dailyWage)}元/天</span><span class="card-badge">📅 共${totalDays}天</span><span style="color:var(--orange);font-weight:600;">💵 ${formatMoney(totalPay)}元</span></div><div class="card-arrow">›</div></div>`;
+    }).join('')}
+    <button class="fab" onclick="showAddWorkerModal()">+</button>
+  `;
+}
+
+async function renderWorkerDetail(workerId) {
+  currentPage = 'workerDetail';
+  $$('#nav .nav-item').forEach(i => i.classList.remove('active'));
+  const [worker, aws, atts, sites] = await Promise.all([WorkerDB.getById(workerId), AttWorkerDB.getByWorker(workerId), AttDB.getAll(), SiteDB.getAll()]);
+  if (!worker) { showToast('工人不存在'); navigateTo('workers'); return; }
+  const siteMap = {}; sites.forEach(s => { siteMap[s.id] = s; });
+  const attMap = {}; atts.forEach(a => { attMap[a.id] = a; });
+
+  const totalDays = sumDays(aws);
+  const totalPay = totalDays * (worker.dailyWage || 0);
+
+  // 按日期排序
+  aws.sort((a,b) => { const attA = attMap[a.attendanceId]; const attB = attMap[b.attendanceId]; return (attB?.date||'').localeCompare(attA?.date||''); });
+
+  content.innerHTML = `
+    <div class="detail-header">
+      <button class="back-btn" onclick="navigateTo('workers')">←</button>
+      <span class="detail-title">工人详情</span>
+      <div class="detail-actions">
+        <button class="btn btn-sm" onclick="showEditWorkerModal(${workerId})">✏️</button>
+        <button class="btn btn-sm btn-danger" onclick="deleteWorker(${workerId})">🗑️</button>
+      </div>
+    </div>
+    <div class="card" style="cursor:default;">
+      <div class="card-title">👷 ${escHtml(worker.name)}</div>
+      <div class="card-info"><div>💰 日薪：${formatMoney(worker.dailyWage)} 元/天</div>${worker.phone?`<div>📞 电话：${escHtml(worker.phone)}</div>`:''}</div>
+    </div>
+    <div style="font-size:15px;font-weight:600;margin:16px 0 10px;">📋 出勤记录 (${aws.length}条)</div>
+    ${aws.length === 0 ? `<div class="empty-state" style="padding:30px;"><div class="empty-icon">📋</div><div class="empty-text">暂无出勤记录</div></div>` : aws.map(aw => {
+      const att = attMap[aw.attendanceId];
+      const s = att ? siteMap[att.siteId] : null;
+      const dayPay = dayTypeValue(aw.dayType||'full') * (aw.dailyWage||0);
+      return `<div class="card" style="cursor:default;" onclick="${s && att ? `selectedAttId=${att.id};renderSiteDetail(${s.id})` : ''}"><div style="display:flex;justify-content:space-between;align-items:center;"><div><div class="card-title" style="font-size:14px;">📍 ${s?escHtml(s.address):'(未知工地)'} · ${att?.date||'?'}</div><div class="card-info"><span style="display:inline-block;padding:2px 8px;border-radius:8px;font-size:11px;background:${aw.dayType==='half'?'#FFF3E0':'#E8F5E9'};color:${aw.dayType==='half'?'#E65100':'#2E7D32'};margin-right:6px;">${dayTypeLabel(aw.dayType||'full')}</span><span style="color:var(--orange);font-weight:600;">= ${formatMoney(dayPay)}元</span></div></div></div></div>`;
+    }).join('')}
+    <div style="background:linear-gradient(135deg,var(--orange-bg),#fff);border-radius:var(--radius);padding:16px;margin-top:16px;text-align:center;"><div style="font-size:13px;color:var(--text-light);">📊 汇总</div><div style="font-size:24px;font-weight:700;color:var(--orange-dark);margin:6px 0;">${totalDays}天 · ${formatMoney(totalPay)}元</div><div style="font-size:12px;color:var(--text-lighter);">日薪 ${formatMoney(worker.dailyWage)} 元 × ${totalDays} 天</div></div>
+  `;
+}
+
+/* ========================================================================
+   搜索 & 统计
+   ======================================================================== */
+async function renderSearch() {
+  content.innerHTML = `<div class="search-box"><span class="search-icon">🔍</span><input type="text" id="searchInput" placeholder="输入师傅名字搜索..." oninput="doSearch(this.value)"></div><div id="searchResults"><div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">输入名字开始搜索</div></div></div>`;
+}
+
+async function doSearch(keyword) {
+  const rd = $('#searchResults'); if (!rd) return;
+  if (!keyword.trim()) { rd.innerHTML = `<div class="empty-state"><div class="empty-icon">🔍</div><div class="empty-text">输入名字开始搜索</div></div>`; return; }
+  const [workers, atts, sites, aws] = await Promise.all([WorkerDB.search(keyword), AttDB.getAll(), SiteDB.getAll(), AttWorkerDB.getAll()]);
+  const siteMap = {}; sites.forEach(s => siteMap[s.id]=s);
+  const attMap = {}; atts.forEach(a => attMap[a.id]=a);
+
+  if (workers.length === 0) { rd.innerHTML = `<div class="empty-state"><div class="empty-icon">😕</div><div class="empty-text">没有找到「${escHtml(keyword)}」相关师傅</div>`; return; }
+
+  rd.innerHTML = workers.map(w => {
+    const wAw = aws.filter(r => r.workerId === w.id);
+    const totalDays = sumDays(wAw);
+    const totalPay = totalDays * (w.dailyWage||0);
+    // 按工地汇总
+    const bySite = {};
+    wAw.forEach(r => { const att = attMap[r.attendanceId]; if(att){ if(!bySite[att.siteId]) bySite[att.siteId]=[]; bySite[att.siteId].push(r); } });
+    let detail = '';
+    Object.entries(bySite).forEach(([sid, rs]) => { const s = siteMap[sid]; detail += `<div style="font-size:12px;color:var(--text-light);margin-top:2px;">· ${s?escHtml(s.address):'(未知)'} — ${sumDays(rs)}天</div>`; });
+    return `<div class="card" onclick="renderWorkerDetail(${w.id})"><div class="card-title">👷 ${escHtml(w.name)}</div><div class="card-info"><span class="card-badge">💰 ${formatMoney(w.dailyWage)}元/天</span><span class="card-badge">📅 ${totalDays}天</span><span style="color:var(--orange);font-weight:600;">💵 ${formatMoney(totalPay)}元</span></div>${detail}<div class="card-arrow">›</div></div>`;
+  }).join('');
+}
+
+async function renderStats(monthFilter = 'all') {
+  currentMonth = monthFilter;
+  const [workers, atts, aws, sites] = await Promise.all([WorkerDB.getAll(), AttDB.getAll(), AttWorkerDB.getAll(), SiteDB.getAll()]);
+  const siteMap = {}; sites.forEach(s => siteMap[s.id]=s);
+  const attMap = {}; atts.forEach(a => attMap[a.id]=a);
+
+  // 月份列表
+  const months = new Set();
+  atts.forEach(a => { if(a.date&&a.date.length>=7) months.add(a.date.substring(0,7)); });
+  const monthList = [...months].sort().reverse();
+
+  let filteredAws = aws;
+  if (monthFilter !== 'all') {
+    const monthAttIds = new Set(atts.filter(a => (a.date||'').startsWith(monthFilter)).map(a => a.id));
+    filteredAws = aws.filter(r => monthAttIds.has(r.attendanceId));
+  }
+
+  const stats = workers.map(w => {
+    const wra = filteredAws.filter(r => r.workerId === w.id);
+    const totalDays = sumDays(wra);
+    const totalPay = totalDays * (w.dailyWage||0);
+    const siteIds = [...new Set(wra.map(r => { const a=attMap[r.attendanceId]; return a?a.siteId:null; }).filter(Boolean))];
+    const siteNames = siteIds.map(id => siteMap[id]?siteMap[id].address:'?').join('、');
+    return { worker: w, totalDays, totalPay, siteNames };
+  }).filter(s => s.totalDays > 0);
+
+  const grandDays = stats.reduce((sum,s) => sum+s.totalDays, 0);
+  const grandPay = stats.reduce((sum,s) => sum+s.totalPay, 0);
+
+  content.innerHTML = `
+    <div style="font-size:15px;font-weight:600;margin-bottom:10px;">📊 统计汇总</div>
+    <div class="filter-row"><span class="filter-chip ${monthFilter==='all'?'active':''}" onclick="renderStats('all')">全部</span>${monthList.map(m => `<span class="filter-chip ${monthFilter===m?'active':''}" onclick="renderStats('${m}')">${m}</span>`).join('')}</div>
+    ${stats.length === 0 ? `<div class="empty-state"><div class="empty-icon">📊</div><div class="empty-text">暂无数据</div></div>` : `
+      <div style="overflow-x:auto;"><table class="stats-table"><thead><tr><th>姓名</th><th>日薪</th><th>天数</th><th>工资</th><th>涉及工地</th></tr></thead><tbody>
+        ${stats.map(s => `<tr onclick="renderWorkerDetail(${s.worker.id})" style="cursor:pointer;"><td style="font-weight:600;">${escHtml(s.worker.name)}</td><td>${formatMoney(s.worker.dailyWage)}</td><td>${s.totalDays}天</td><td style="color:var(--orange);font-weight:600;">${formatMoney(s.totalPay)}</td><td style="font-size:11px;max-width:100px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;">${s.siteNames||'-'}</td></tr>`).join('')}
+        <tr class="total-row"><td>合计</td><td>-</td><td>${grandDays}天</td><td>${formatMoney(grandPay)}元</td><td>-</td></tr></tbody></table></div>
+    `}
+  `;
+}
+
+/* ========================================================================
+   照片功能
+   ======================================================================== */
+function triggerPhotoCapture(siteId) { pendingPhotoSiteId = siteId; document.getElementById('photoInput').click(); }
+
+async function handlePhotoCapture(event) {
+  const file = event.target.files[0]; if (!file || !pendingPhotoSiteId) return;
+  const reader = new FileReader();
+  reader.onload = async (e) => {
+    const img = new Image();
+    img.onload = async () => {
+      const canvas = document.createElement('canvas'); const maxW = 800; let w=img.width, h=img.height;
+      if(w>maxW){ h=(h*maxW)/w; w=maxW; } canvas.width=w; canvas.height=h;
+      canvas.getContext('2d').drawImage(img,0,0,w,h);
+      await PhotoDB.add(pendingPhotoSiteId, canvas.toDataURL('image/jpeg',0.7));
+      showToast('📷 照片已保存'); renderSiteDetail(pendingPhotoSiteId); pendingPhotoSiteId = null;
+    }; img.src = e.target.result;
+  }; reader.readAsDataURL(file); event.target.value = '';
+}
+
+async function deletePhoto(photoId, siteId) {
+  showConfirm('确定删除这张照片吗？', async () => { await PhotoDB.delete(photoId); showToast('🗑️ 照片已删除'); renderSiteDetail(siteId); });
+}
+
+function viewPhoto(dataUrl) {
+  showModal(`<div style="text-align:center;"><img src="${dataUrl}" style="max-width:100%;max-height:70vh;border-radius:8px;"><div style="margin-top:12px;"><button class="btn" onclick="closeModal()">关闭</button></div></div>`);
+}
+
+/* ========================================================================
+   初始化
+   ======================================================================== */
+async function init() {
+  try { await openDB(); console.log('✅ DB v4'); } catch(e) { console.error(e); showToast('⚠️ 存储初始化失败'); }
+  navigateTo('home');
+}
+
+init();
+</script>
+</body>
+</html>
